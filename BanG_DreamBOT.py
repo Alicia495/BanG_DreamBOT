@@ -1,8 +1,7 @@
 import os
-import login
+import shutil
 import tweepy
 import time
-import shutil
 import urllib.request
 import urllib.error
 import json
@@ -10,6 +9,8 @@ from collections import OrderedDict
 import datetime
 import re
 import key
+import glob
+import illust_judge
 
 BearerToken = key.BearerToken
 access_token = key.access_token
@@ -18,6 +19,7 @@ consumer_key = key.consumer_key
 consumer_secret = key.consumer_secret
 
 DIR = "D:\バンドリ関連\画像\Twitter" #画像を保存するとこ
+OUT_DIR = "D:\バンドリ関連\画像\OUT"
 JSON_DIR = "tweetData.json"#ツイートデータを保存するとこ
 MY_ID = {1447221621874315265,1073602536224030721,1373311376119132162}#ワードリスト管理ユーザーID
 rejectHashTags = ["ガルパ履歴書","バンドリ履歴書","バンドリーマーさんと仲良くなりたい","ラーメン","柴犬","コスプレ"]
@@ -31,14 +33,12 @@ api = tweepy.API(auth,wait_on_rate_limit = True)
 #-------------------------------------------------------------------------
 
 def getTweet():
-   
-
     public_tweets = api.home_timeline()
     for tweet in public_tweets:
         print(tweet.text)
 
-def tweet():
-    api.update_status('ぬあ')
+def tweet(tweet_text):
+    api.update_status(tweet_text)
 
 oldurl = None
 
@@ -55,17 +55,14 @@ def downloadImg(url, dir):
         except urllib.error.URLError as e:
             print(e)
     
-
 def download_file_to_dir(url, dst_dir):
     downloadImg(url, os.path.join(dst_dir, os.path.basename(url)))
-
 
 def getImage(tweet):
 
             try:
                 url=tweet.extended_entities['media'][0]['media_url']
                 print(url)
-                download_file_to_dir(url,DIR);
                 download_file_to_dir(url,DIR);
                 url=tweet.extended_entities['media'][1]['media_url']
                 print(url)
@@ -79,13 +76,29 @@ def getImage(tweet):
             except:
                 pass #画像がないときはなにもしない
 
+def checkImage(tweet):
+    try:
+            url=tweet.extended_entities['media'][0]['media_url']
+            download_file_to_dir(url,".\image_temp");
+            files = glob.glob(".\image_temp\*")
+            for file in files:
+                if illust_judge.judge_illust(file) == "illust":
+                    os.remove(file)
+                    result = "pass"
+
+                else:
+                    shutil.move(file,OUT_DIR)
+                    result == "out"
+            return result
+                 
+    except:
+            pass #画像がないときはなにもしない
+
 def getKeyFromValue(d, val):
     keys = [k for k, v in d.items() if v == val]
     if keys:
         return keys[0]
     return None
-
-
 
 def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
     today = int(datetime.datetime.timestamp(datetime.datetime.now())) 
@@ -119,15 +132,18 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
                 fav = tweet.favorite_count#ふぁぼ数取得
              
                 if str(tweetId) not in tweetList:
-                    if (fav >= FAV_CNT) & (advancedTweetCheck(tweet) == "pass"):#ふぁぼが指定数以上で&これまでにリツイートしてい&内容が悪くなかったらリツイート
-                     try:
-                        api.create_favorite(tweetId)
-                        api.retweet(tweetId)
-                        print("ついーとID" + str(tweetId) +"をリツイート")
-                        if (fav >= 0):
-                            getImage(tweet)
-                     except:
-                         pass
+                    if (fav >= FAV_CNT):
+                        if(advancedTweetCheck(tweet) == "pass"):#ふぁぼが指定数以上で&これまでにリツイートしてい&内容が悪くなかったらリツイート
+                             try:
+                                api.create_favorite(tweetId)
+                                api.retweet(tweetId)
+                                print("ついーとID" + str(tweetId) +"をリツイート")
+                                if (fav >= 0):
+                                    getImage(tweet)
+                             except:
+                                 pass
+                        else:
+                            print("tweet rejected")
                     else:
                         print("tweet rejected")
             
@@ -136,7 +152,6 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
 
     wordList[word].update(tweetList)
     outputJson(wordList)
-
 
 def advancedTweetCheck(tweet):#その名の通りアドバンスなツイートのチェック　ハッシュタグやツイートの内容から不適切なものを判別する
     text = tweet.text
@@ -152,11 +167,11 @@ def advancedTweetCheck(tweet):#その名の通りアドバンスなツイート�
         if rejectTag in hashTag:
             return "out"
 
+    if (checkImage(tweet) == "out"):
+        return "out"
+       
+
     return "pass"
-
-
-
-
 
 def dateScale(rawDate):
     newDate = rawDate[:19]
@@ -188,7 +203,6 @@ def outputJson(data):
         json.dump(data,f,indent = 2,ensure_ascii = False)
     f.close()
 
-
 def AllResearch():
     jsonData = {}
     jsonData = inputJson()
@@ -197,7 +211,6 @@ def AllResearch():
     for word in jsonData['data'].keys():
         retweet(word,jsonData['data'][word],int(wordCnt))
     print("レート待機中...")
-
 
 def checkMentions():#15秒ずつ更新するとよき
     jsonData = {}
@@ -307,7 +320,6 @@ def inputCmd(tweet):#コマンドの処理部
 
     return
    
-
 def checkOlderSearchedTweetDate(word):
     jsonData = {}
     jsonData = inputJson()
@@ -318,7 +330,6 @@ def checkSearchedTweetValue(word):
       jsonData = {}
       jsonData = inputJson()
       return len(jsonData[word])
-
 
 
 
@@ -337,7 +348,6 @@ def main():
             count = 0
         time.sleep(1)
 
-
-
 if __name__ == "__main__":
     main()
+   

@@ -5,11 +5,12 @@
     <ProjectGuid>1da420e3-ae51-4e42-b104-d3158e59ce50</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>BanG_DreamBOT.py</StartupFile>
-    <SearchPath>..\BanG_DreamBOT</SearchPath>
+    <SearchPath>..\BanG_DreamBOT;..\BanG_DreamBOT</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>BanG_DreamBOT</Name>
     <RootNamespace>BanG_DreamBOT</RootNamespace>
+    <InterpreterId>Global|PythonCore|3.8</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BanG_DreamBOT.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.8" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
