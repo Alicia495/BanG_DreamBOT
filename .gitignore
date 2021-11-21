@@ -4,3 +4,4 @@ __pycache__/key.cpython-38.pyc
 *.jpg
 *.png
 tweetData.json
+*.pyc
