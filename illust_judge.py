@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+SCORE = 0.45
+
 def create_canny_img(gray_img_src):
     """create 3 Mat from a image_file.
     argument:
@@ -98,7 +100,7 @@ def identifies_img(img_src):
     color_result = get_color(img_src)
     score = cal_score(gau_result, med_result, color_result)
     print("score :", round(score, 3) ,end=" -->")
-    if score >= 0.43:
+    if score >= SCORE:
         return "illust"
     else:
         return "picture"
