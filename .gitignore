@@ -2,3 +2,5 @@
 key.py
 tweetData.json
 __pycache__/key.cpython-38.pyc
+*.jpg
+*.png
