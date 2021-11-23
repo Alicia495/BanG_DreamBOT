@@ -21,7 +21,7 @@ consumer_secret = key.consumer_secret
 DIR = "D:\バンドリ関連\画像\Twitter" #画像を保存するとこ
 OUT_DIR = "D:\バンドリ関連\画像\OUT"
 JSON_DIR = "tweetData.json"#ツイートデータを保存するとこ
-MY_ID = {1447221621874315265,1073602536224030721,1373311376119132162}#ワードリスト管理ユーザーID
+MY_ID = {1447221621874315265,1073602536224030721,1373311376119132162}#管理ユーザーID
 rejectHashTags = ["ガルパ履歴書","バンドリ履歴書","バンドリーマーさんと仲良くなりたい","ラーメン","柴犬","コスプレ"]
 rejectTweetWord = ["コスプレ","柴犬","ラーメン","おは","cosplay","Cosplay"]
 
@@ -50,7 +50,6 @@ def downloadImg(url, dir):
                 data = web_file.read()
                 with open(dir, mode='wb') as local_file:
                      local_file.write(data)
-                     print("保存しました")
                      oldurl = url
         except urllib.error.URLError as e:
             print(e)
@@ -62,25 +61,26 @@ def getImage(tweet):
 
             try:
                 url=tweet.extended_entities['media'][0]['media_url']
-                print(url)
-                download_file_to_dir(url,DIR);
+                print(url + "を保存しました")
+                download_file_to_dir(url,DIR)
                 url=tweet.extended_entities['media'][1]['media_url']
-                print(url)
-                download_file_to_dir(url,DIR);
+                print(url+ "を保存しました")
+                download_file_to_dir(url,DIR)
                 url=tweet.extended_entities['media'][2]['media_url']
-                print(url)
-                download_file_to_dir(url,DIR);
+                print(url+ "を保存しました")
+                download_file_to_dir(url,DIR)
                 url=tweet.extended_entities['media'][3]['media_url']
-                print(url)
-                download_file_to_dir(url,DIR);
+                print(url+ "を保存しました")
+                download_file_to_dir(url,DIR)
             except:
                 pass #画像がないときはなにもしない
 
 def checkImage(tweet):
-    try:
+    #try:
             url=tweet.extended_entities['media'][0]['media_url']
-            download_file_to_dir(url,".\image_temp");
+            download_file_to_dir(url,".\image_temp")
             files = glob.glob(".\image_temp\*")
+
             for file in files:
                 if illust_judge.judge_illust(file) == "illust":
                     os.remove(file)
@@ -90,9 +90,9 @@ def checkImage(tweet):
                     shutil.move(file,OUT_DIR)
                     result == "out"
             return result
-                 
-    except:
-            pass #画像がないときはなにもしない
+     #except:    
+            #print("imageCheck Error")
+            #pass #画像がないときはなにもしない
 
 def getKeyFromValue(d, val):
     keys = [k for k, v in d.items() if v == val]
@@ -111,12 +111,12 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
     tweetList = wordList[word]#指定されたwordキーをリストに展開
 
 
-    if (today - int(wordList['lastSearchDate'])) > 43200:#次の日になったら
+    if (today - int(wordList['lastSearchDate'])) > (12*60*60):#半日すぎたら
 
         wordList['lastSearchDate'] = today
-        for tweetWord in list(wordList["data"].keys()): #1日以上前のツイートIDを削除
+        for tweetWord in list(wordList["data"].keys()): #半日以上前のツイートIDを削除
             for tweetKey in list(wordList[tweetWord].keys()):
-                 if (today - int (wordList[tweetWord][tweetKey])) > 86400:
+                 if (today - int (wordList[tweetWord][tweetKey])) > (12*60*60):
                      del wordList[tweetWord][tweetKey]
                      print("IDを削除しました")
 
@@ -138,14 +138,13 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
                                 api.create_favorite(tweetId)
                                 api.retweet(tweetId)
                                 print("ついーとID" + str(tweetId) +"をリツイート")
-                                if (fav >= 0):
-                                    getImage(tweet)
+                                getImage(tweet)
                              except:
                                  pass
-                        else:
-                            print("tweet rejected")
-                    else:
-                        print("tweet rejected")
+                        #else:
+                            #print("tweet rejected")
+                    #else:
+                        #print("tweet rejected")
             
             except:
                 pass
