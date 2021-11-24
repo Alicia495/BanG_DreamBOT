@@ -10,6 +10,7 @@ import datetime
 import re
 import key
 import glob
+import shutil
 import illust_judge
 
 BearerToken = key.BearerToken
@@ -76,23 +77,21 @@ def getImage(tweet):
                 pass #画像がないときはなにもしない
 
 def checkImage(tweet):
-    #try:
-            url=tweet.extended_entities['media'][0]['media_url']
-            download_file_to_dir(url,".\image_temp")
-            files = glob.glob(".\image_temp\*")
+        shutil.rmtree(".\image_temp\\")
+        os.mkdir(".\image_temp\\")
+        url=tweet.extended_entities['media'][0]['media_url']
+        download_file_to_dir(url,".\image_temp")
+        files = glob.glob(".\image_temp\*")
 
-            for file in files:
-                if illust_judge.judge_illust(file) == "illust":
-                    os.remove(file)
-                    result = "pass"
+        for file in files:
+            if illust_judge.judge_illust(file) == "illust":
+                os.remove(".\image_temp\\" + file)
+                result = "pass"
 
-                else:
-                    shutil.move(file,OUT_DIR)
-                    result == "out"
-            return result
-     #except:    
-            #print("imageCheck Error")
-            #pass #画像がないときはなにもしない
+            else:
+                shutil.move(file,OUT_DIR)
+                result = "out"
+        return result
 
 def getKeyFromValue(d, val):
     keys = [k for k, v in d.items() if v == val]
