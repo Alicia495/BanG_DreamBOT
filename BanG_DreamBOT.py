@@ -25,6 +25,7 @@ JSON_DIR = "tweetData.json"#ツイートデータを保存するとこ
 MY_ID = {1447221621874315265,1073602536224030721,1373311376119132162}#管理ユーザーID
 rejectHashTags = ["ガルパ履歴書","バンドリ履歴書","バンドリーマーさんと仲良くなりたい","ラーメン","柴犬","コスプレ"]
 rejectTweetWord = ["コスプレ","柴犬","ラーメン","おは","cosplay","Cosplay"]
+rejectRetweetRatio = 0.05 #はじくリツイートとふぁぼの比率
 
 #----------------------------------------------------------------------
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret) #認証を通すとこ
@@ -77,20 +78,20 @@ def getImage(tweet):
                 pass #画像がないときはなにもしない
 
 def checkImage(tweet):
-        shutil.rmtree(".\image_temp\\")
-        os.mkdir(".\image_temp\\")
-        url=tweet.extended_entities['media'][0]['media_url']
-        download_file_to_dir(url,".\image_temp")
-        files = glob.glob(".\image_temp\*")
+    shutil.rmtree(".\image_temp\\")
+    os.mkdir(".\image_temp\\")
+    url=tweet.extended_entities['media'][0]['media_url']
+    download_file_to_dir(url,".\image_temp")
+    files = glob.glob(".\image_temp\*")
 
-        for file in files:
-            if illust_judge.judge_illust(file) == "illust":
-                os.remove(".\image_temp\\" + file)
-                result = "pass"
-
-            else:
-                shutil.move(file,OUT_DIR)
-                result = "out"
+    for file in files:
+        result = illust_judge.judge_illust(file)
+        #print(result)
+        if result == "illust":
+            os.remove(".\image_temp\\" + file)
+                
+        else:
+            shutil.move(file,OUT_DIR)
         return result
 
 def getKeyFromValue(d, val):
@@ -110,12 +111,12 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
     tweetList = wordList[word]#指定されたwordキーをリストに展開
 
 
-    if (today - int(wordList['lastSearchDate'])) > (12*60*60):#半日すぎたら
+    if (today - int(wordList['lastSearchDate'])) > (6*60*60):#半日すぎたら
 
         wordList['lastSearchDate'] = today
         for tweetWord in list(wordList["data"].keys()): #半日以上前のツイートIDを削除
             for tweetKey in list(wordList[tweetWord].keys()):
-                 if (today - int (wordList[tweetWord][tweetKey])) > (12*60*60):
+                 if (today - int (wordList[tweetWord][tweetKey])) > (6*60*60):
                      del wordList[tweetWord][tweetKey]
                      print("IDを削除しました")
 
@@ -127,18 +128,20 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
                 tweetId = tweet.id #tweetID取得
                 tweetDate = dateScale(str(tweet.created_at))#ツイート日取得 YYYY,MM,DD,HH,mm,SS
                 tweetList[tweetId] = tweetDate
-                url = tweet.extended_entities['media'][0]['media_url']#メディアURL取得
+                url = tweet.extended_entities['media'][0]['media_url']#画像が含まれてるかの検証　なければ例外に飛ぶ
                 fav = tweet.favorite_count#ふぁぼ数取得
              
                 if str(tweetId) not in tweetList:
                     if (fav >= FAV_CNT):
                         if(advancedTweetCheck(tweet) == "pass"):#ふぁぼが指定数以上で&これまでにリツイートしてい&内容が悪くなかったらリツイート
+                             print("tetweet charenge")
                              try:
                                 api.create_favorite(tweetId)
                                 api.retweet(tweetId)
                                 print("ついーとID" + str(tweetId) +"をリツイート")
                                 getImage(tweet)
                              except:
+                                 print ("りつーとに失敗しました")
                                  pass
                         #else:
                             #print("tweet rejected")
@@ -165,11 +168,25 @@ def advancedTweetCheck(tweet):#その名の通りアドバンスなツイート�
         if rejectTag in hashTag:
             return "out"
 
-    if (checkImage(tweet) == "out"):
+    #check = checkImage(tweet)
+    #print (check)
+    #if check == "picture":
+    #    return "out"
+
+    if checkRetweetVal(tweet) == "out":
         return "out"
        
 
     return "pass"
+
+def checkRetweetVal(tweet):
+    fav = tweet.favorite_count
+    ret = tweet.retweet_count
+    if(ret / fav) >= rejectRetweetRatio:
+        return "pass"
+    else :
+        return "out"
+
 
 def dateScale(rawDate):
     newDate = rawDate[:19]

@@ -99,7 +99,7 @@ def identifies_img(img_src):
     med_result = cal_diff(can_img, med_can_img)
     color_result = get_color(img_src)
     score = cal_score(gau_result, med_result, color_result)
-    print("score :", round(score, 3) ,end=" -->")
+    #print("score :", round(score, 3) ,end=" -->")
     if score >= SCORE:
         return "illust"
     else:
@@ -111,7 +111,7 @@ def judge_illust(image_path):
     global img_src 
     img_src = resize_img(img_name)
     result = identifies_img(img_src)
-    print(result)
+    #print(result)
     return result
 
 
