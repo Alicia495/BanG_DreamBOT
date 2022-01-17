@@ -78,15 +78,15 @@ augmented_image = resize_to_256_square(max_square_image)
 
 
 with tf.compat.v1.Session() as sess:
-    input_tensor_shape = sess.graph.get_tensor_by_name('data:0').shape.as_list()
+    input_tensor_shape = sess.graph.get_tensor_by_name('Placeholder:0').shape.as_list()
 network_input_size = input_tensor_shape[1]
 
 # Crop the center for the specified network_input_Size
 augmented_image = crop_center(augmented_image, network_input_size, network_input_size)
 
 #おそらくメインの処理部
-output_layer = 'Softmax:0'
-input_node = 'data:0'
+output_layer = 'loss:0'
+input_node = 'Placeholder:0'
 
 with tf.compat.v1.Session() as sess:
     try:
