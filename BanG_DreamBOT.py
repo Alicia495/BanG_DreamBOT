@@ -1,3 +1,4 @@
+from email.errors import InvalidMultipartContentTransferEncodingDefect
 import os
 import tweepy
 import urllib.request
@@ -148,6 +149,7 @@ def checkImage(tweet):#AIによる画像のイラスト判定
         image_type = AI_vision.AI_judge(image_path)
         print(image_type)
         if(image_type == "Negative"):
+            shutil.move(image_path,OUT_DIR)
             return("out")
         else:
             return("pass")
