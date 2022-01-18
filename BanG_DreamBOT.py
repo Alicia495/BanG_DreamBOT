@@ -11,7 +11,7 @@ import re
 import key
 import glob
 import shutil
-import illust_judge
+import AI_vision
 
 BearerToken = key.BearerToken
 access_token = key.access_token
