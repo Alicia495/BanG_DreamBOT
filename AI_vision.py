@@ -103,9 +103,3 @@ highest_probability_index = np.argmax(predictions)
 print('Classified as: ' + labels[highest_probability_index])
 print()
 
-# 各ラベルの確立の羅列
-label_index = 0
-for p in predictions:
-    truncated_probablity = np.float64(np.round(p,8))
-    print (labels[label_index], truncated_probablity)
-    label_index += 1
