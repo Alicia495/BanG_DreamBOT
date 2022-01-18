@@ -48,58 +48,62 @@ def update_orientation(image):
 
 #----------------------------------------------------------------------------------------
 
-graph_def = tf.compat.v1.GraphDef()
-labels = []
+def AI_judge(image_path):
+    graph_def = tf.compat.v1.GraphDef()
+    labels = []
 
-AI = "AI_Model/model.pb"
-labels_name = "AI_Model/labels.txt"
-#AIモデルの読み込み
-with tf.io.gfile.GFile(AI, 'rb') as f:
-    graph_def.ParseFromString(f.read())
-    tf.import_graph_def(graph_def, name='')
-#ラベル情報のよみこみ
-with open(labels_name, 'rt') as lf:
-    for l in lf:
-        labels.append(l.strip())
-
-imageFile = "image_temp/test.jpg"
-image = Image.open(imageFile)
-
-image = update_orientation(image)
-image = convert_to_opencv(image)
-image = resize_down_to_1600_max_dim(image)
-
-h, w = image.shape[:2]
-min_dim = min(w,h)
-max_square_image = crop_center(image, min_dim, min_dim)
-
-augmented_image = resize_to_256_square(max_square_image)
-
-
-
-with tf.compat.v1.Session() as sess:
-    input_tensor_shape = sess.graph.get_tensor_by_name('Placeholder:0').shape.as_list()
-network_input_size = input_tensor_shape[1]
-
-# Crop the center for the specified network_input_Size
-augmented_image = crop_center(augmented_image, network_input_size, network_input_size)
-
-#おそらくメインの処理部
-output_layer = 'loss:0'
-input_node = 'Placeholder:0'
-
-with tf.compat.v1.Session() as sess:
+    AI = "AI_Model/model.pb"
+    labels_name = "AI_Model/labels.txt"
+    #AIモデルの読み込み
+    with tf.io.gfile.GFile(AI, 'rb') as f:
+        graph_def.ParseFromString(f.read())
+        tf.import_graph_def(graph_def, name='')
+    #ラベル情報のよみこみ
+    with open(labels_name, 'rt') as lf:
+        for l in lf:
+            labels.append(l.strip())
     try:
-        prob_tensor = sess.graph.get_tensor_by_name(output_layer)
-        predictions = sess.run(prob_tensor, {input_node: [augmented_image] })
-    except KeyError:
-        print ("分類出力レイヤーが見つかりませんでした: " + output_layer + ".")
-        print ("オブジェクト検出プロジェクトからエクスポートされたモデルであることを確認します.")
-        exit(-1)
+        imageFile = image_path
+        image = Image.open(imageFile)
 
-#表示部分
-#最も高い確率であるラベルを表示する
-highest_probability_index = np.argmax(predictions)
-print('Classified as: ' + labels[highest_probability_index])
-print()
+    except:
+        print("指定されたパスのファイルが見つかりません")
+        return("error")
+
+
+    image = update_orientation(image)
+    image = convert_to_opencv(image)
+    image = resize_down_to_1600_max_dim(image)
+
+    h, w = image.shape[:2]
+    min_dim = min(w,h)
+    max_square_image = crop_center(image, min_dim, min_dim)
+
+    augmented_image = resize_to_256_square(max_square_image)
+
+
+
+    with tf.compat.v1.Session() as sess:
+        input_tensor_shape = sess.graph.get_tensor_by_name('Placeholder:0').shape.as_list()
+    network_input_size = input_tensor_shape[1]
+
+    augmented_image = crop_center(augmented_image, network_input_size, network_input_size)
+
+    #おそらくメインの処理部
+    output_layer = 'loss:0'
+    input_node = 'Placeholder:0'
+
+    with tf.compat.v1.Session() as sess:
+        try:
+            prob_tensor = sess.graph.get_tensor_by_name(output_layer)
+            predictions = sess.run(prob_tensor, {input_node: [augmented_image] })
+        except KeyError:
+            print ("分類出力レイヤーが見つかりませんでした: " + output_layer + ".")
+            print ("オブジェクト検出プロジェクトからエクスポートされたモデルであることを確認します.")
+            return("error")
+
+    #表示部分
+    #最も高い確率であるラベルを表示する
+    highest_probability_index = np.argmax(predictions)
+    return (labels[highest_probability_index])
 

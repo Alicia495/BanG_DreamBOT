@@ -1,7 +1,5 @@
 import os
-import shutil
 import tweepy
-import time
 import urllib.request
 import urllib.error
 import json
@@ -9,9 +7,10 @@ from collections import OrderedDict
 import datetime
 import re
 import key
-import glob
 import shutil
 import AI_vision
+import time
+import glob
 
 BearerToken = key.BearerToken
 access_token = key.access_token
@@ -77,23 +76,6 @@ def getImage(tweet):
             except:
                 pass #画像がないときはなにもしない
 
-def checkImage(tweet):
-    shutil.rmtree(".\image_temp\\")
-    os.mkdir(".\image_temp\\")
-    url=tweet.extended_entities['media'][0]['media_url']
-    download_file_to_dir(url,".\image_temp")
-    files = glob.glob(".\image_temp\*")
-
-    for file in files:
-        result = illust_judge.judge_illust(file)
-        #print(result)
-        if result == "illust":
-            os.remove(".\image_temp\\" + file)
-                
-        else:
-            shutil.move(file,OUT_DIR)
-        return result
-
 def getKeyFromValue(d, val):
     keys = [k for k, v in d.items() if v == val]
     if keys:
@@ -112,13 +94,13 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
 
 
     if (today - int(wordList['lastSearchDate'])) > (6*60*60):#半日すぎたら
-
+        print("IDをクリーンアップします")
         wordList['lastSearchDate'] = today
         for tweetWord in list(wordList["data"].keys()): #半日以上前のツイートIDを削除
             for tweetKey in list(wordList[tweetWord].keys()):
                  if (today - int (wordList[tweetWord][tweetKey])) > (6*60*60):
                      del wordList[tweetWord][tweetKey]
-                     print("IDを削除しました")
+                     
 
     olderTweetId = min(tweetList,key = tweetList.get,default = None) #今まで検索したりツイートの中で最も古いツイートIDを取得
 
@@ -154,6 +136,22 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
     wordList[word].update(tweetList)
     outputJson(wordList)
 
+def checkImage(tweet):#AIによる画像のイラスト判定
+    shutil.rmtree("image_temp")
+    os.mkdir("image_temp")
+
+    url=tweet.extended_entities['media'][0]['media_url']
+    download_file_to_dir(url,"image_temp")
+
+    imagePath_list = glob.glob('image_temp/*.jpg')
+    for image_path in imagePath_list:
+        image_type = AI_vision.AI_judge(image_path)
+        print(image_type)
+        if(image_type == "Negative"):
+            return("out")
+        else:
+            return("pass")
+
 def advancedTweetCheck(tweet):#その名の通りアドバンスなツイートのチェック　ハッシュタグやツイートの内容から不適切なものを判別する
     text = tweet.text
     hashTag = []
@@ -168,12 +166,10 @@ def advancedTweetCheck(tweet):#その名の通りアドバンスなツイート�
         if rejectTag in hashTag:
             return "out"
 
-    #check = checkImage(tweet)
-    #print (check)
-    #if check == "picture":
-    #    return "out"
-
     if checkRetweetVal(tweet) == "out":
+        return "out"
+    
+    if checkImage(tweet) == "out":
         return "out"
        
 
@@ -186,7 +182,6 @@ def checkRetweetVal(tweet):
         return "pass"
     else :
         return "out"
-
 
 def dateScale(rawDate):
     newDate = rawDate[:19]
@@ -237,7 +232,7 @@ def checkMentions():#15秒ずつ更新するとよき
         newerCheckedId = max(idList,key = idList.get,default = None) #今まで検索したりメンションの中で最も新しいツイートIDを取得
     except:
         idList = {}
-   
+
 
     for tweet in tweepy.Cursor(api.mentions_timeline,since_id = newerCheckedId).items(1):
         tweetId = tweet.id
@@ -332,9 +327,9 @@ def inputCmd(tweet):#コマンドの処理部
             api.update_status(status = replyText,in_reply_to_status_id = tweet.id)
             return
             
-
     return
-   
+
+
 def checkOlderSearchedTweetDate(word):
     jsonData = {}
     jsonData = inputJson()
@@ -350,6 +345,7 @@ def checkSearchedTweetValue(word):
 
 def main():
     print("起動")
+    
     count = 0
     while True:
         if (count % 15) == 0:
@@ -362,6 +358,7 @@ def main():
         if count >= 900 :
             count = 0
         time.sleep(1)
+    
 
 if __name__ == "__main__":
     main()
