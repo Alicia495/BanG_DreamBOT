@@ -12,6 +12,7 @@ import shutil
 import AI_vision
 import time
 import glob
+from tqdm import tqdm
 
 BearerToken = key.BearerToken
 access_token = key.access_token
@@ -349,17 +350,22 @@ def main():
     print("起動")
     
     count = 0
+    bar = tqdm(total = 300,unit = "roop",unit_scale = True)
+    bar.set_description('次の検索開始まで…')
     while True:
-        if (count % 15) == 0:
+        bar.update(0.1)
+
+        if (count % 150) == 0:
             checkMentions()
-        if(count % 300) == 0:
+        if(count % 3000) == 0:
             AllResearch()
+            bar.reset()
 
         count += 1
 
-        if count >= 900 :
+        if count >= 9000 :
             count = 0
-        time.sleep(1)
+        time.sleep(0.1)
     
 
 if __name__ == "__main__":
