@@ -14,6 +14,8 @@ import time
 import glob
 from tqdm import tqdm
 
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true' #GPUメモリを必要分しか確保しない設定
+
 BearerToken = key.BearerToken
 access_token = key.access_token
 access_token_secret = key.access_token_secret
@@ -350,7 +352,7 @@ def main():
     print("起動")
     
     count = 0
-    bar = tqdm(total = 300,unit = "roop",unit_scale = True)
+    bar = tqdm(total = 300,unit = "roop",unit_scale = True, ncols=70)
     bar.set_description('次の検索開始まで…')
     while True:
         bar.update(0.1)
