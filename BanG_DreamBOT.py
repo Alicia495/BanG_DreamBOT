@@ -22,8 +22,7 @@ access_token_secret = key.access_token_secret
 consumer_key = key.consumer_key
 consumer_secret = key.consumer_secret
 
-DIR = "D:\バンドリ関連\画像\Twitter" #画像を保存するとこ
-OUT_DIR = "D:\バンドリ関連\画像\OUT"
+
 JSON_DIR = "tweetData.json"#ツイートデータを保存するとこ
 MY_ID = {1447221621874315265,1073602536224030721,1373311376119132162}#管理ユーザーID
 rejectHashTags = ["ガルパ履歴書","バンドリ履歴書","バンドリーマーさんと仲良くなりたい","ラーメン","柴犬","コスプレ"]
@@ -61,24 +60,6 @@ def downloadImg(url, dir):
     
 def download_file_to_dir(url, dst_dir):
     downloadImg(url, os.path.join(dst_dir, os.path.basename(url)))
-
-def getImage(tweet):
-
-            try:
-                url=tweet.extended_entities['media'][0]['media_url']
-                print(url + "を保存しました")
-                download_file_to_dir(url,DIR)
-                url=tweet.extended_entities['media'][1]['media_url']
-                print(url+ "を保存しました")
-                download_file_to_dir(url,DIR)
-                url=tweet.extended_entities['media'][2]['media_url']
-                print(url+ "を保存しました")
-                download_file_to_dir(url,DIR)
-                url=tweet.extended_entities['media'][3]['media_url']
-                print(url+ "を保存しました")
-                download_file_to_dir(url,DIR)
-            except:
-                pass #画像がないときはなにもしない
 
 def getKeyFromValue(d, val):
     keys = [k for k, v in d.items() if v == val]
@@ -125,7 +106,6 @@ def retweet(word,FAV_CNT,searchCNT):#15分当たり450回検索可
                                 api.create_favorite(tweetId)
                                 api.retweet(tweetId)
                                 print("ついーとID" + str(tweetId) +"をリツイート")
-                                getImage(tweet)
                              except:
                                  print ("りつーとに失敗しました")
                                  pass
@@ -152,7 +132,6 @@ def checkImage(tweet):#AIによる画像のイラスト判定
         image_type = AI_vision.AI_judge(image_path)
         print(image_type)
         if(image_type == "Negative"):
-            shutil.move(image_path,OUT_DIR)
             return("out")
         else:
             return("pass")
@@ -241,10 +220,6 @@ def checkMentions():#15秒ずつ更新するとよき
 
     for tweet in tweepy.Cursor(api.mentions_timeline,since_id = newerCheckedId).items(1):
         tweetId = tweet.id
-        try:
-            api.create_favorite(tweetId)
-        except:
-            pass
 
         if tweet.user.id in MY_ID:
             pass
