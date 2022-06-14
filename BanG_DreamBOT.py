@@ -129,9 +129,9 @@ def checkImage(tweet):#AIによる画像のイラスト判定
 
     imagePath_list = glob.glob('image_temp/*.jpg')
     for image_path in imagePath_list:
-        image_type = AI_vision.AI_judge(image_path)
-        print(image_type)
-        if(image_type == "Negative"):
+        illust_pred = AI_vision.AI_judge(image_path)
+
+        if(illust_pred > 0.5):
             return("out")
         else:
             return("pass")
@@ -187,13 +187,13 @@ def inputData(word,FAV_CNT):#新たな検索ワードの追加
 
 def inputJson():
     jsonData = {}
-    with open(JSON_DIR,'r',encoding = 'shift_jis') as f:
+    with open(JSON_DIR,'r',encoding = 'utf-8') as f:
         jsonData = json.load(f)
     f.close()
     return jsonData
 
 def outputJson(data):
-    with open(JSON_DIR,'w',encoding = 'shift_jis') as f:
+    with open(JSON_DIR,'w',encoding = 'utf-8') as f:
         json.dump(data,f,indent = 2,ensure_ascii = False)
     f.close()
 
