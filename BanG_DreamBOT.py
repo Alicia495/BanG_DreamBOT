@@ -1,4 +1,5 @@
 from email.errors import InvalidMultipartContentTransferEncodingDefect
+import sys
 import os
 import tweepy
 import urllib.request
@@ -208,13 +209,13 @@ def inputData(word,FAV_CNT):#新たな検索ワードの追加
 
 def inputJson():
     jsonData = {}
-    with open(JSON_DIR,'r',encoding = 'shift_jis') as f:
+    with open(JSON_DIR,'r',encoding = 'utf-8') as f:
         jsonData = json.load(f)
     f.close()
     return jsonData
 
 def outputJson(data):
-    with open(JSON_DIR,'w',encoding = 'shift_jis') as f:
+    with open(JSON_DIR,'w',encoding = 'utf-8') as f:
         json.dump(data,f,indent = 2,ensure_ascii = False)
     f.close()
 
@@ -349,25 +350,10 @@ def checkSearchedTweetValue(word):
 
 
 def main():
-    print("起動")
-    
-    count = 0
-    bar = tqdm(total = 300,unit = "roop",unit_scale = True, ncols=70)
-    bar.set_description('次の検索開始まで…')
-    while True:
-        bar.update(0.1)
+    checkMentions()
+    AllResearch()
+    sys.exit()
 
-        if (count % 150) == 0:
-            checkMentions()
-        if(count % 3000) == 0:
-            AllResearch()
-            bar.reset()
-
-        count += 1
-
-        if count >= 9000 :
-            count = 0
-        time.sleep(0.1)
     
 
 if __name__ == "__main__":
